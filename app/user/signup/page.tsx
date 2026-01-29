@@ -10,18 +10,31 @@ import { SelectInput } from "@/components/ui/SelectInput";
 import { CheckboxField } from "@/components/ui/CheckboxField";
 import { GradientButton } from "@/components/ui/GradientButton";
 import { CalendarIcon } from "@/components/ui/CalendarIcon";
+import { OTPSentModal } from "@/components/ui/OTPSentModal";
 
 export default function SignupPage() {
   const [agreeToTerms, setAgreeToTerms] = useState(true);
+  const [showOTPModal, setShowOTPModal] = useState(false);
+
+  const handleCreateAccount = (e: React.FormEvent) => {
+    e.preventDefault();
+    setShowOTPModal(true);
+  };
 
   return (
     <AuthLayout rightPanelOverflow>
+      <OTPSentModal
+        open={showOTPModal}
+        onClose={() => setShowOTPModal(false)}
+        email="de***@example.com"
+        phone="+91-7428****54"
+      />
       <AuthFormHeading
         title="Create your account"
         subtitle="Be part of our global team, make learning great by signing up with us today!"
       />
 
-      <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+      <form className="space-y-5" onSubmit={handleCreateAccount}>
         <div className="grid grid-cols-2 gap-4">
           <LabeledInput
             id="firstName"
