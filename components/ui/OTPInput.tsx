@@ -56,11 +56,11 @@ export function OTPInput({
   };
 
   return (
-    <div className={className}>
+    <div className={`${className}`}>
       <label htmlFor={`${id}-0`} className="block text-sm font-medium text-gray-700 mb-2">
         {label}
       </label>
-      <div className="flex gap-2 justify-center sm:gap-2.5">
+      <div className="flex justify-between">
         {Array.from({ length }).map((_, i) => (
           <input
             key={i}
@@ -75,7 +75,7 @@ export function OTPInput({
             onChange={(e) => setDigit(i, e.target.value)}
             onKeyDown={(e) => handleKeyDown(i, e)}
             onPaste={handlePaste}
-            className={inputClassName}
+            className={`${inputClassName} sm:w-17`}
             aria-label={`${label} digit ${i + 1}`}
           />
         ))}

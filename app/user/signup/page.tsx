@@ -27,6 +27,14 @@ function maskEmailOrPhone(value: string): string {
   return "***";
 }
 
+function getTypeEmailOrPhone(value: string): string {
+  if (!value) return "***";
+  if (value.includes("@")) {
+    return "email"
+  }
+  return "phone"
+}
+
 export default function SignupPage() {
   const router = useRouter();
   const [firstName, setFirstName] = useState("");
@@ -80,10 +88,11 @@ export default function SignupPage() {
         open={showOTPModal}
         onClose={() => {
           setShowOTPModal(false);
+          sessionStorage.setItem("signupIdentifier", emailOrPhone);
           router.push("signup/verify-code");
         }}
-        email={maskEmailOrPhone(emailOrPhone)}
-        phone={maskEmailOrPhone(emailOrPhone)}
+        emailOrPhone={maskEmailOrPhone(emailOrPhone)}
+        type={getTypeEmailOrPhone(emailOrPhone)}
       />
       <AuthFormHeading
         title="Create your account"
