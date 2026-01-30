@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { AuthFormHeading } from "@/components/auth/AuthFormHeading";
 import { LabeledInput } from "@/components/ui/LabeledInput";
@@ -10,7 +11,41 @@ import { CheckboxField } from "@/components/ui/CheckboxField";
 import { GradientButton } from "@/components/ui/GradientButton";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Login failed");
+        setIsLoading(false);
+        return;
+      }
+
+      router.push("signup/social");
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <AuthLayout>
@@ -28,19 +63,23 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+      <form className="space-y-5" onSubmit={handleLogin}>
         <LabeledInput
           id="email"
           type="email"
           label="Work Email"
-          defaultValue="admin@numee.com"
           placeholder="admin@numee.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
         />
         <PasswordInput
           id="password"
           label="Password"
-          defaultValue="*********"
           placeholder="••••••••••"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
         />
         <div className="flex items-center justify-between">
           <CheckboxField
@@ -53,7 +92,10 @@ export default function LoginPage() {
             Forget your password?
           </Link>
         </div>
-        <GradientButton>Sign In</GradientButton>
+        {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
+        <GradientButton disabled={isLoading}>
+          {isLoading ? "Signing In..." : "Sign In"}
+        </GradientButton>
       </form>
 
       <div className="relative">
