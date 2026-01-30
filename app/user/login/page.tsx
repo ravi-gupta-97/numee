@@ -9,6 +9,7 @@ import { LabeledInput } from "@/components/ui/LabeledInput";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { CheckboxField } from "@/components/ui/CheckboxField";
 import { GradientButton } from "@/components/ui/GradientButton";
+import { TOTAL_QUESTIONS } from "@/app/questionnaire/questionnaire-data";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -38,7 +39,12 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("signup/social");
+
+      if (typeof data.currentQuestionIndex === 'number' && data.currentQuestionIndex < TOTAL_QUESTIONS) {
+        router.push("/questionnaire");
+      } else {
+        router.push("signup/social");
+      }
     } catch (err) {
       console.error(err);
       setError("Something went wrong. Please try again.");

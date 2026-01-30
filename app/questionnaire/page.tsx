@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { NuMeeLogo } from "@/components/auth/NuMeeLogo";
 import { GradientButton } from "@/components/ui/GradientButton";
@@ -133,6 +133,22 @@ export default function QuestionnairePage() {
   const [isRecording, setIsRecording] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
+  useEffect(() => {
+    const loadProgress = async () => {
+      try {
+        const res = await fetch("/api/questionnaire/progress");
+        if (res.ok) {
+          const data = await res.json();
+          if (typeof data.stepIndex === "number") setCurrentStep(data.stepIndex);
+          if (data.answers) setAnswers(data.answers);
+        }
+      } catch (error) {
+        console.error("Failed to load progress:", error);
+      }
+    };
+    loadProgress();
+  }, []);
+
   const step = QUESTION_STEPS[currentStep];
   const progress = ((currentStep + 1) / TOTAL_QUESTIONS) * 100;
   const isFirst = currentStep === 0;
@@ -142,12 +158,27 @@ export default function QuestionnairePage() {
     setAnswers((prev) => ({ ...prev, [fieldId]: value }));
   }, []);
 
-  const goNext = () => {
+  const goNext = async () => {
+    const nextStep = Math.min(currentStep + 1, TOTAL_QUESTIONS - 1);
+
+    try {
+      await fetch("/api/questionnaire/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          stepIndex: isLast ? currentStep : nextStep,
+          answers
+        }),
+      });
+    } catch (error) {
+      console.error("Failed to save progress:", error);
+    }
+
     if (isLast) {
       setShowSuccessModal(true);
       return;
     }
-    setCurrentStep((s) => Math.min(s + 1, TOTAL_QUESTIONS - 1));
+    setCurrentStep(nextStep);
   };
 
   const goBack = () => {
