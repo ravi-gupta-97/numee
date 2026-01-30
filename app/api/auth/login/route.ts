@@ -36,7 +36,10 @@ export async function POST(req: Request) {
             path: "/",
         });
 
-        return NextResponse.json({ message: "Login successful" }, { status: 200 });
+        return NextResponse.json({
+            message: "Login successful",
+            currentQuestionIndex: (user as any).currentQuestionIndex
+        }, { status: 200 });
     } catch (error) {
         console.error("Login error:", error);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });

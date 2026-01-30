@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { NuMeeLogo } from "@/components/auth/NuMeeLogo";
 import { GradientButton } from "@/components/ui/GradientButton";
@@ -132,6 +132,23 @@ export default function QuestionnairePage() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isRecording, setIsRecording] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const loadProgress = async () => {
+      try {
+        const res = await fetch("/api/questionnaire/progress");
+        if (res.ok) {
+          const data = await res.json();
+          if (typeof data.stepIndex === "number") setCurrentStep(data.stepIndex);
+          if (data.answers) setAnswers(data.answers);
+        }
+      } catch (error) {
+        console.error("Failed to load progress:", error);
+      }
+    };
+    loadProgress();
+  }, []);
 
   const step = QUESTION_STEPS[currentStep];
   const progress = ((currentStep + 1) / TOTAL_QUESTIONS) * 100;
@@ -142,12 +159,31 @@ export default function QuestionnairePage() {
     setAnswers((prev) => ({ ...prev, [fieldId]: value }));
   }, []);
 
-  const goNext = () => {
+  const goNext = async () => {
+    const nextStep = Math.min(currentStep + 1, TOTAL_QUESTIONS - 1);
+    setIsSubmitting(true);
+
+    try {
+      const endpoint = isLast ? "/api/questionnaire/submit" : "/api/questionnaire/save";
+      await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          stepIndex: isLast ? currentStep : nextStep,
+          answers
+        }),
+      });
+    } catch (error) {
+      console.error("Failed to save progress:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+
     if (isLast) {
       setShowSuccessModal(true);
       return;
     }
-    setCurrentStep((s) => Math.min(s + 1, TOTAL_QUESTIONS - 1));
+    setCurrentStep(nextStep);
   };
 
   const goBack = () => {
@@ -218,7 +254,8 @@ export default function QuestionnairePage() {
               <button
                 type="button"
                 onClick={goBack}
-                className="py-2.5 px-5 rounded-lg border border-gray-300 bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 transition"
+                disabled={isSubmitting}
+                className="py-2.5 px-5 rounded-lg border border-gray-300 bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Back
               </button>
@@ -226,6 +263,7 @@ export default function QuestionnairePage() {
             <GradientButton
               type="button"
               onClick={goNext}
+              loading={isSubmitting}
               className="ml-auto w-auto min-w-[120px] px-6 py-2.5"
             >
               {isLast ? "Submit" : "Next"}

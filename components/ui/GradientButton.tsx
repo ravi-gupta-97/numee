@@ -1,20 +1,31 @@
 import { ButtonHTMLAttributes } from "react";
+import { Spinner } from "./Spinner";
 
 export function GradientButton({
   children,
   type = "submit",
   className = "",
+  loading = false,
   ...props
 }: {
   children: React.ReactNode;
+  loading?: boolean;
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       type={type}
-      className={`w-full py-3 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-500 to-amber-500 hover:from-blue-600 hover:to-amber-600 transition shadow-md ${className}`}
+      disabled={loading || props.disabled}
+      className={`relative w-full py-3 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-500 to-amber-500 hover:from-blue-600 hover:to-amber-600 transition shadow-md disabled:opacity-70 disabled:cursor-not-allowed ${className}`}
       {...props}
     >
-      {children}
+      <span className={`flex items-center justify-center gap-2 ${loading ? "invisible" : ""}`}>
+        {children}
+      </span>
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Spinner className="w-5 h-5 text-white" />
+        </div>
+      )}
     </button>
   );
 }

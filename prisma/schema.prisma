@@ -19,11 +19,26 @@ model User {
   emailOrPhone String   @unique @map("email_or_phone")
   dateOfBirth  String?  @map("date_of_birth")
   gender       String?
-  passwordHash String   @map("password_hash")
-  otp          String?   
-  otpExpiry    DateTime? 
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  passwordHash          String    @map("password_hash")
+  otp                   String?
+  otpExpiry             DateTime?
+  currentQuestionIndex  Int       @default(0) @map("current_question_index")
+  questionnaireAnswers  Json?     @map("questionnaire_answers")
+
+  questionnaireResponses QuestionnaireResponse[]
+
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
 
   @@map("users")
+}
+
+model QuestionnaireResponse {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id])
+  answers   Json
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("questionnaire_responses")
 }
