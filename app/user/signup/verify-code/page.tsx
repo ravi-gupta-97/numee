@@ -1,48 +1,82 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { AuthFormHeading } from "@/components/auth/AuthFormHeading";
 import { OTPInput } from "@/components/ui/OTPInput";
 import { GradientButton } from "@/components/ui/GradientButton";
 import { AccountCreatedModal } from "@/components/ui/AccountCreatedModal";
+import { useRouter } from "next/navigation";
 
 export default function VerifyCodePage() {
-  const [emailOTP, setEmailOTP] = useState("");
-  const [phoneOTP, setPhoneOTP] = useState("");
+  const router = useRouter();
+  const [OTP, setOTP] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [identifier, setIdentifier] = useState("Email Or Phone");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleVerifyOTP = (e: React.FormEvent) => {
+  const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
-    setShowSuccessModal(true);
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emailOrPhone: identifier, otp: OTP }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Verification failed");
+        setIsLoading(false);
+        return;
+      }
+
+      setShowSuccessModal(true);
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  useEffect(() => {
+    const value: string | null = sessionStorage.getItem("signupIdentifier");
+    if (value) {
+      setIdentifier(value)
+    }
+  }, []);
 
   return (
     <AuthLayout>
-      <AccountCreatedModal open={showSuccessModal} onClose={() => setShowSuccessModal(false)} />
+      <AccountCreatedModal open={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          router.push("social");
+        }} />
       <AuthFormHeading
         title="Enter verification code"
-        subtitle="We have just seen a verification code to demo@example.com and +91-7428****54"
+        subtitle={`We have just sent a verification code to ${identifier}`}
       />
 
       <form className="space-y-6" onSubmit={handleVerifyOTP}>
         <OTPInput
-          id="email-otp"
-          label="Enter Email OTP"
+          id="emailOrPhone-otp"
+          label="Enter OTP"
           length={6}
-          value={emailOTP}
-          onChange={setEmailOTP}
+          value={OTP}
+          onChange={setOTP}
           placeholder="0"
         />
-        <OTPInput
-          id="phone-otp"
-          label="Enter Phone OTP"
-          length={6}
-          value={phoneOTP}
-          onChange={setPhoneOTP}
-          placeholder="0"
-        />
-        <GradientButton>Verify OTP</GradientButton>
+        {error && <p className="text-red-500 text-sm font-medium">{error}</p>}
+        <GradientButton disabled={isLoading}>
+          {isLoading ? "Verifying..." : "Verify OTP"}
+        </GradientButton>
       </form>
     </AuthLayout>
   );

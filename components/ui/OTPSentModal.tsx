@@ -46,13 +46,13 @@ function EnvelopeCheckIcon() {
 export function OTPSentModal({
   open,
   onClose,
-  email = "de***@example.com",
-  phone = "+91-7428****54",
+  emailOrPhone = "de***@example.com or +91-7428****54",
+  type, 
 }: {
   open: boolean;
   onClose: () => void;
-  email?: string;
-  phone?: string;
+  emailOrPhone?: string;
+  type?: string;
 }) {
   return (
     <Modal open={open} onClose={onClose}>
@@ -69,9 +69,9 @@ export function OTPSentModal({
 
       <div className="p-8 pt-12 text-center">
         <EnvelopeCheckIcon />
-        <h3 className="mt-6 text-xl font-bold text-gray-900">Check Your Email & phone</h3>
+        <h3 className="mt-6 text-xl font-bold text-gray-900">Check Your <span className="capitalize">{type}</span></h3>
         <p className="mt-3 text-sm text-gray-600 leading-relaxed">
-          A 4-digit OTP has been sent to your registered email {email} and {phone}. Please check your
+          A 4-digit OTP has been sent to your registered <span className="capitalize">{type}</span> {emailOrPhone}. Please check your
           inbox and proceed.
         </p>
         <button
