@@ -32,6 +32,11 @@ export function OTPInput({
       const next = [...digits];
       next[index] = digit;
       onChange(next.join("").slice(0, length));
+
+      // Auto-advance focus
+      if (digit && index < length - 1) {
+        refs.current[index + 1]?.focus();
+      }
     },
     [value, length, onChange, digits]
   );
