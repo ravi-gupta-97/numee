@@ -132,6 +132,7 @@ export default function QuestionnairePage() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isRecording, setIsRecording] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const loadProgress = async () => {
@@ -160,9 +161,11 @@ export default function QuestionnairePage() {
 
   const goNext = async () => {
     const nextStep = Math.min(currentStep + 1, TOTAL_QUESTIONS - 1);
+    setIsSubmitting(true);
 
     try {
-      await fetch("/api/questionnaire/save", {
+      const endpoint = isLast ? "/api/questionnaire/submit" : "/api/questionnaire/save";
+      await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -172,6 +175,8 @@ export default function QuestionnairePage() {
       });
     } catch (error) {
       console.error("Failed to save progress:", error);
+    } finally {
+      setIsSubmitting(false);
     }
 
     if (isLast) {
@@ -249,7 +254,8 @@ export default function QuestionnairePage() {
               <button
                 type="button"
                 onClick={goBack}
-                className="py-2.5 px-5 rounded-lg border border-gray-300 bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 transition"
+                disabled={isSubmitting}
+                className="py-2.5 px-5 rounded-lg border border-gray-300 bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Back
               </button>
@@ -257,6 +263,7 @@ export default function QuestionnairePage() {
             <GradientButton
               type="button"
               onClick={goNext}
+              loading={isSubmitting}
               className="ml-auto w-auto min-w-[120px] px-6 py-2.5"
             >
               {isLast ? "Submit" : "Next"}
