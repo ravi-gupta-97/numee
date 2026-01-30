@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { sendSignupEmail } from "@/lib/mailer";
+import { generateOTP } from "@/lib/otp";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/db";
 
@@ -44,6 +46,9 @@ export async function POST(request: Request) {
 
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
+    const otp = generateOTP();
+    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 min from now
+
     const user = await prisma.user.create({
       data: {
         firstName: firstName.trim(),
@@ -52,8 +57,14 @@ export async function POST(request: Request) {
         dateOfBirth: dateOfBirth?.trim() || null,
         gender: gender?.trim() || null,
         passwordHash,
+        otp,
+        otpExpiry,
       },
     });
+
+    if (emailOrPhone.includes("@")) {
+      await sendSignupEmail(emailOrPhone, user.firstName, otp);
+    }
 
     return NextResponse.json(
       {

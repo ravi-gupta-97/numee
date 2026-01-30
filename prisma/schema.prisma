@@ -20,6 +20,8 @@ model User {
   dateOfBirth  String?  @map("date_of_birth")
   gender       String?
   passwordHash String   @map("password_hash")
+  otp          String?   
+  otpExpiry    DateTime? 
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
